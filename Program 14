@@ -1,0 +1,117 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+#define MATRIX_SIZE 3
+
+void matrixMultiply(int key[MATRIX_SIZE][MATRIX_SIZE], int block[MATRIX_SIZE], int result[MATRIX_SIZE]) {
+    for (int i = 0; i < MATRIX_SIZE; i++) {
+        result[i] = 0;
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            result[i] += key[i][j] * block[j];
+        }
+        result[i] %= 26; // Modulo 26 arithmetic for the Hill cipher
+    }
+}
+
+int modInverse(int a, int m) {
+    a = a % m;
+    for (int x = 1; x < m; x++) {
+        if ((a * x) % m == 1) {
+            return x;
+        }
+    }
+    return -1; // No modular inverse exists
+}
+
+// Function to find the determinant of a 2x2 matrix
+int determinant2x2(int a, int b, int c, int d) {
+    return a * d - b * c;
+}
+
+int determinant3x3(int mat[MATRIX_SIZE][MATRIX_SIZE]) {
+    return mat[0][0] * determinant2x2(mat[1][1], mat[1][2], mat[2][1], mat[2][2]) -
+           mat[0][1] * determinant2x2(mat[1][0], mat[1][2], mat[2][0], mat[2][2]) +
+           mat[0][2] * determinant2x2(mat[1][0], mat[1][1], mat[2][0], mat[2][1]);
+}
+
+void cofactorMatrix(int mat[MATRIX_SIZE][MATRIX_SIZE], int cofactor[MATRIX_SIZE][MATRIX_SIZE]) {
+    cofactor[0][0] = determinant2x2(mat[1][1], mat[1][2], mat[2][1], mat[2][2]);
+    cofactor[0][1] = -determinant2x2(mat[1][0], mat[1][2], mat[2][0], mat[2][2]);
+    cofactor[0][2] = determinant2x2(mat[1][0], mat[1][1], mat[2][0], mat[2][1]);
+
+    cofactor[1][0] = -determinant2x2(mat[0][1], mat[0][2], mat[2][1], mat[2][2]);
+    cofactor[1][1] = determinant2x2(mat[0][0], mat[0][2], mat[2][0], mat[2][2]);
+    cofactor[1][2] = -determinant2x2(mat[0][0], mat[0][1], mat[2][0], mat[2][1]);
+
+    cofactor[2][0] = determinant2x2(mat[0][1], mat[0][2], mat[1][1], mat[1][2]);
+    cofactor[2][1] = -determinant2x2(mat[0][0], mat[0][2], mat[1][0], mat[1][2]);
+    cofactor[2][2] = determinant2x2(mat[0][0], mat[0][1], mat[1][0], mat[1][1]);
+}
+
+void adjugateMatrix(int mat[MATRIX_SIZE][MATRIX_SIZE], int adjugate[MATRIX_SIZE][MATRIX_SIZE]) {
+    int cofactor[MATRIX_SIZE][MATRIX_SIZE];
+    cofactorMatrix(mat, cofactor);
+
+    for (int i = 0; i < MATRIX_SIZE; i++) {
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            adjugate[i][j] = cofactor[j][i]; // Transpose the cofactor matrix
+        }
+    }
+}
+
+void inverseMatrix(int mat[MATRIX_SIZE][MATRIX_SIZE], int inverse[MATRIX_SIZE][MATRIX_SIZE]) {
+    int det = determinant3x3(mat);
+    int detInverse = modInverse(det, 26);
+
+    if (detInverse == -1) {
+        printf("Matrix is not invertible (det = 0).\n");
+        exit(EXIT_FAILURE);
+    }
+
+    int adjugate[MATRIX_SIZE][MATRIX_SIZE];
+    adjugateMatrix(mat, adjugate);
+
+    for (int i = 0; i < MATRIX_SIZE; i++) {
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            inverse[i][j] = (adjugate[i][j] * detInverse) % 26;
+            if (inverse[i][j] < 0) {
+                inverse[i][j] += 26; // Ensure positive values
+            }
+        }
+    }
+}
+
+void knownPlaintextAttack(int key[MATRIX_SIZE][MATRIX_SIZE], int block[MATRIX_SIZE], int result[MATRIX_SIZE]) {
+    inverseMatrix(key, key);
+
+    matrixMultiply(key, block, result);
+}
+
+int main() {
+    int key[MATRIX_SIZE][MATRIX_SIZE] = {{6, 24, 1}, {13, 16, 10}, {20, 17, 15}}; // Example key matrix
+    int plaintextBlock[MATRIX_SIZE] = {7, 2, 17}; // Example known plaintext block
+
+    int ciphertextBlock[MATRIX_SIZE];
+    matrixMultiply(key, plaintextBlock, ciphertextBlock);
+
+    printf("Known Plaintext Block: ");
+    for (int i = 0; i < MATRIX_SIZE; ++i) {
+        printf("%d ", plaintextBlock[i]);
+    }
+    printf("\n");
+
+    printf("Ciphertext Block: ");
+    for (int i = 0; i < MATRIX_SIZE; ++i) {
+        printf("%d ", ciphertextBlock[i]);
+    }
+    printf("\n");
+
+    int recoveredBlock[MATRIX_SIZE];
+    knownPlaintextAttack(ciphertextBlock, plaintextBlock, recoveredBlock);
+
+    printf("Recovered Key (inverted): \n");
+    for (int i = 0; i < MATRIX_SIZE; ++i) {
+        for (int j = 0; j < MATRIX_SIZE; ++j) {
+            printf("%d ", key[i][j]);
