@@ -1,0 +1,71 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define ALPHABET_SIZE 26
+
+// Function to calculate the letter frequency in the ciphertext
+void calculateFrequency(char ciphertext[], int frequency[]) {
+    for (int i = 0; ciphertext[i] != '\0'; i++) {
+        if (isalpha(ciphertext[i])) {
+            char letter = tolower(ciphertext[i]);
+            frequency[letter - 'a']++;
+        }
+    }
+}
+
+// Function to display the letter frequency
+void displayFrequency(int frequency[]) {
+    printf("Letter Frequency:\n");
+    for (int i = 0; i < ALPHABET_SIZE; i++) {
+        printf("%c: %d\n", 'a' + i, frequency[i]);
+    }
+    printf("\n");
+}
+
+// Function to perform the letter frequency attack and suggest possible plaintexts
+void letterFrequencyAttack(char ciphertext[], int topN) {
+    int frequency[ALPHABET_SIZE] = {0};
+    calculateFrequency(ciphertext, frequency);
+
+    // Find the most common letter in the English language
+    int maxFrequencyIndex = 0;
+    for (int i = 1; i < ALPHABET_SIZE; i++) {
+        if (frequency[i] > frequency[maxFrequencyIndex]) {
+            maxFrequencyIndex = i;
+        }
+    }
+
+    // Calculate the additive key based on the most common letter (assuming it's 'e')
+    int additiveKey = (maxFrequencyIndex - ('e' - 'a') + ALPHABET_SIZE) % ALPHABET_SIZE;
+
+    // Display the letter frequency and the calculated additive key
+    displayFrequency(frequency);
+    printf("Additive Key: %d\n", additiveKey);
+
+    // Display the suggested plaintexts based on the additive key
+    printf("Suggested Plaintexts:\n");
+    for (int i = 0; i < topN; i++) {
+        char suggestedPlaintext[100]; // Adjust the size based on your needs
+        for (int j = 0; ciphertext[j] != '\0'; j++) {
+            if (isalpha(ciphertext[j])) {
+                char shiftedChar = 'a' + (ciphertext[j] - 'a' - additiveKey + ALPHABET_SIZE) % ALPHABET_SIZE;
+                suggestedPlaintext[j] = isupper(ciphertext[j]) ? toupper(shiftedChar) : shiftedChar;
+            } else {
+                suggestedPlaintext[j] = ciphertext[j];
+            }
+        }
+        suggestedPlaintext[strlen(ciphertext)] = '\0'; // Null-terminate the string
+        printf("%d. %s\n", i + 1, suggestedPlaintext);
+    }
+}
+
+int main() {
+    char ciphertext[] = "yourciphertextgoeshere";
+    int topN = 10;
+
+    letterFrequencyAttack(ciphertext, topN);
+
+    return 0;
+}
