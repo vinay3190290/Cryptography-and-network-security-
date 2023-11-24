@@ -1,0 +1,102 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define SIZE 2
+
+void multiplyMatrix(int keyMatrix[SIZE][SIZE], int inputMatrix[SIZE][1], int resultMatrix[SIZE][1]) {
+    int i, j;
+
+    for (i = 0; i < SIZE; ++i) {
+        resultMatrix[i][0] = 0;
+        for (j = 0; j < SIZE; ++j) {
+            resultMatrix[i][0] += keyMatrix[i][j] * inputMatrix[j][0];
+        }
+        resultMatrix[i][0] %= 26;  // Apply modulo 26 for each element
+    }
+}
+
+void encryptHillCipher(char plaintext[], int keyMatrix[SIZE][SIZE], char ciphertext[]) {
+    int len = strlen(plaintext);
+    int inputMatrix[SIZE][1], resultMatrix[SIZE][1];
+
+    for (int i = 0; i < len; i += SIZE) {
+        // Prepare the input matrix
+        for (int j = 0; j < SIZE; ++j) {
+            inputMatrix[j][0] = plaintext[i + j] - 'a';  // Assuming lowercase letters
+        }
+
+        // Perform matrix multiplication
+        multiplyMatrix(keyMatrix, inputMatrix, resultMatrix);
+
+        // Convert the result back to letters and append to ciphertext
+        for (int j = 0; j < SIZE; ++j) {
+            ciphertext[i + j] = resultMatrix[j][0] + 'a';
+        }
+    }
+
+    ciphertext[len] = '\0'; // Null-terminate the string
+}
+
+int modInverse(int a, int m) {
+    a = a % m;
+    for (int x = 1; x < m; x++) {
+        if ((a * x) % m == 1) {
+            return x;
+        }
+    }
+    return -1; // Inverse doesn't exist
+}
+
+void decryptHillCipher(char ciphertext[], int keyMatrix[SIZE][SIZE], char decrypted[]) {
+    int len = strlen(ciphertext);
+    int inputMatrix[SIZE][1], resultMatrix[SIZE][1];
+    int inverseKeyMatrix[SIZE][SIZE];
+
+    // Calculate the modular inverse of the determinant of the key matrix
+    int determinant = (keyMatrix[0][0] * keyMatrix[1][1] - keyMatrix[0][1] * keyMatrix[1][0] + 26) % 26;
+    int inverseDeterminant = modInverse(determinant, 26);
+
+    // Calculate the adjugate matrix and multiply by the inverse determinant
+    inverseKeyMatrix[0][0] = (keyMatrix[1][1] * inverseDeterminant) % 26;
+    inverseKeyMatrix[0][1] = ((-keyMatrix[0][1]) * inverseDeterminant + 26) % 26;
+    inverseKeyMatrix[1][0] = ((-keyMatrix[1][0]) * inverseDeterminant + 26) % 26;
+    inverseKeyMatrix[1][1] = (keyMatrix[0][0] * inverseDeterminant) % 26;
+
+    for (int i = 0; i < len; i += SIZE) {
+        // Prepare the input matrix
+        for (int j = 0; j < SIZE; ++j) {
+            inputMatrix[j][0] = ciphertext[i + j] - 'a';  // Assuming lowercase letters
+        }
+
+        // Perform matrix multiplication with the inverse key matrix
+        multiplyMatrix(inverseKeyMatrix, inputMatrix, resultMatrix);
+
+        // Convert the result back to letters and append to decrypted
+        for (int j = 0; j < SIZE; ++j) {
+            decrypted[i + j] = (resultMatrix[j][0] + 26) % 26 + 'a';
+        }
+    }
+
+    decrypted[len] = '\0'; // Null-terminate the string
+}
+
+int main() {
+    int keyMatrix[SIZE][SIZE] = {{9, 4}, {5, 7}};
+    char plaintext[] = "meetmeattheusualplaceattenratherthaneightoclock";
+    char ciphertext[100]; // Adjust the size based on your needs
+    char decrypted[100]; // Adjust the size based on your needs
+
+    // Encrypt the message using the Hill cipher
+    encryptHillCipher(plaintext, keyMatrix, ciphertext);
+
+    // Decrypt the ciphertext to recover the original plaintext
+    decryptHillCipher(ciphertext, keyMatrix, decrypted);
+
+    // Display the results
+    printf("Original Plaintext: %s\n", plaintext);
+    printf("Hill Cipher Encrypted: %s\n", ciphertext);
+    printf("Hill Cipher Decrypted: %s\n", decrypted);
+
+    return 0;
+}
