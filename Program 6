@@ -1,0 +1,54 @@
+#include <openssl/des.h>
+#include <string.h>
+
+// Function to perform 3DES encryption in CBC mode
+void encrypt3DES_CBC(const unsigned char *input, const unsigned char *key, const unsigned char *iv, unsigned char *output, size_t length) {
+    DES_cblock desKey1, desKey2, desKey3, desIV;
+    DES_key_schedule keySchedule1, keySchedule2, keySchedule3;
+
+    // Set the three 8-byte DES keys
+    memcpy(desKey1, key, 8);
+    memcpy(desKey2, key + 8, 8);
+    memcpy(desKey3, key + 16, 8);
+
+    // Set the DES initialization vector (IV)
+    memcpy(desIV, iv, 8);
+
+    // Set the encryption keys
+    DES_set_key_checked(&desKey1, &keySchedule1);
+    DES_set_key_checked(&desKey2, &keySchedule2);
+    DES_set_key_checked(&desKey3, &keySchedule3);
+
+    // Encrypt each block in CBC mode
+    for (size_t i = 0; i < length; i += 8) {
+        // XOR the plaintext block with the previous ciphertext block (or IV for the first block)
+        for (int j = 0; j < 8; ++j) {
+            input[i + j] ^= desIV[j];
+        }
+
+        // Perform the encryption with 3DES
+        DES_ecb3_encrypt(&input[i], &output[i], &keySchedule1, &keySchedule2, &keySchedule3, DES_ENCRYPT);
+
+        // Update the IV to be used for the next block
+        memcpy(desIV, &output[i], 8);
+    }
+}
+
+int main() {
+    const unsigned char key[24] = "0123456789abcdef01234567";
+    const unsigned char iv[8] = "abcdefgh";
+    const char plaintext[] = "Hello123";
+    size_t length = strlen(plaintext);
+    unsigned char ciphertext[length];
+
+    encrypt3DES_CBC((const unsigned char *)plaintext, key, iv, ciphertext, length);
+
+    printf("Plaintext: %s\n", plaintext);
+    printf("Ciphertext: ");
+    for (size_t i = 0; i < length; ++i) {
+        printf("%02x", ciphertext[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
