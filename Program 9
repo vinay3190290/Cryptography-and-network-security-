@@ -1,0 +1,47 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+// Function to perform modular exponentiation (a^b mod q)
+long long modExp(long long a, long long b, long long q) {
+    long long result = 1;
+    a = a % q;  // Ensure a is in the range [0, q-1]
+
+    while (b > 0) {
+        if (b % 2 == 1) {
+            result = (result * a) % q;
+        }
+        b = b >> 1;
+        a = (a * a) % q;
+    }
+
+    return result;
+}
+
+int main() {
+    // Public parameters
+    long long p = 23;  // Prime modulus
+    long long g = 5;   // Generator
+
+    // Alice's secret key
+    long long privateAlice = 6;
+
+    // Bob's secret key
+    long long privateBob = 15;
+
+    // Calculate public keys
+    long long publicAlice = modExp(g, privateAlice, p);
+    long long publicBob = modExp(g, privateBob, p);
+
+    // Exchange public keys
+    long long sharedKeyAlice = modExp(publicBob, privateAlice, p);
+    long long sharedKeyBob = modExp(publicAlice, privateBob, p);
+
+    // Display results
+    printf("Public Key Alice: %lld\n", publicAlice);
+    printf("Public Key Bob: %lld\n", publicBob);
+    printf("Shared Key Alice: %lld\n", sharedKeyAlice);
+    printf("Shared Key Bob: %lld\n", sharedKeyBob);
+
+    return 0;
+}
