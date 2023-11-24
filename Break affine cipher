@@ -1,0 +1,36 @@
+#include <stdio.h>
+
+int modInverse(int a, int m) {
+    a = a % m;
+    for (int x = 1; x < m; x++) {
+        if ((a * x) % m == 1) {
+            return x;
+        }
+    }
+    return -1; // Inverse doesn't exist
+}
+
+int main() {
+    char mostFrequent = 'B';
+    char secondMostFrequent = 'U';
+
+    int a, b;
+
+    int a1 = mostFrequent - 'A';
+    int a2 = secondMostFrequent - 'A';
+    int m = 26; // Size of the alphabet
+
+    if (modInverse(a1, m) == -1) {
+        printf("Error: Modular inverse does not exist for a1.\n");
+        return 1;
+    }
+
+    b = (a1 - a2 + m) % m;
+
+    a = modInverse(a1, m);
+
+    printf("Affine cipher parameters: a = %d, b = %d\n", a, b);
+
+
+    return 0;
+}
