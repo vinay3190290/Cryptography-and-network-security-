@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+// Function to calculate the greatest common divisor (GCD)
+int gcd(int a, int b) {
+    if (b == 0) {
+        return a;
+    }
+    return gcd(b, a % b);
+}
+
+int main() {
+    // Given public key
+    int n = 299;
+    int e = 7;
+
+    // Simulate RSA encryption with a set of plaintext blocks
+    int plaintextBlocks[] = {42, 15, 86, 77, 123};
+
+    // Simulate the scenario where one plaintext block has a common factor with n
+    int indexWithCommonFactor = 2;  // Choose an index where the common factor exists
+    int commonFactor = 13;  // Choose a common factor with n
+
+    // Display the set of plaintext blocks
+    printf("Plaintext Blocks:\n");
+    for (int i = 0; i < sizeof(plaintextBlocks) / sizeof(plaintextBlocks[0]); ++i) {
+        printf("%d ", plaintextBlocks[i]);
+    }
+    printf("\n");
+
+    // Simulate RSA encryption with the public key
+    printf("\nEncrypted Blocks (with public key e=%d, n=%d):\n", e, n);
+    for (int i = 0; i < sizeof(plaintextBlocks) / sizeof(plaintextBlocks[0]); ++i) {
+        int encryptedBlock = 1;
+        for (int j = 0; j < e; ++j) {
+            encryptedBlock = (encryptedBlock * plaintextBlocks[i]) % n;
+        }
+        printf("%d ", encryptedBlock);
+    }
+    printf("\n");
+
+    // Simulate the scenario where one plaintext block has a common factor with n
+    printf("\nSimulating Common Factor Scenario:\n");
+    plaintextBlocks[indexWithCommonFactor] *= commonFactor;
+
+    // Display the updated set of plaintext blocks
+    printf("\nUpdated Plaintext Blocks (with common factor):\n");
+    for (int i = 0; i < sizeof(plaintextBlocks) / sizeof(plaintextBlocks[0]); ++i) {
+        printf("%d ", plaintextBlocks[i]);
+    }
+    printf("\n");
+
+    // Attempt to find the common factor with n
+    int commonFactorCandidate = gcd(plaintextBlocks[indexWithCommonFactor], n);
+    printf("\nAttempt to Find Common Factor with n:\n");
+    printf("Common Factor Candidate: %d\n", commonFactorCandidate);
+
+    return 0;
+}
