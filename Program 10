@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <string.h>
+
+// Function to perform XOR operation on two blocks
+void xorBlocks(const unsigned char *block1, const unsigned char *block2, unsigned char *result, size_t blockSize) {
+    for (size_t i = 0; i < blockSize; ++i) {
+        result[i] = block1[i] ^ block2[i];
+    }
+}
+
+// Function to perform CBC-MAC for a one-block message
+void cbcMac(const unsigned char *key, const unsigned char *message, unsigned char *mac, size_t blockSize) {
+    // Assume encryption function is available (e.g., AES in CBC mode)
+    // In practice, a proper encryption library should be used
+    // For simplicity, XOR operation is used here instead
+
+    // Use the message as the IV
+    memcpy(mac, message, blockSize);
+
+    // Encrypt the message with the key (here, simulated with XOR)
+    xorBlocks(mac, key, mac, blockSize);
+}
+
+int main() {
+    // Secret key (16 bytes for AES)
+    unsigned char key[] = "secretkey1234567";
+
+    // One-block message
+    unsigned char message[] = "Hello, World!123";
+
+    // CBC-MAC for the one-block message
+    unsigned char macSingleBlock[16];
+    cbcMac(key, message, macSingleBlock, sizeof(macSingleBlock));
+
+    // Create a two-block message X || (X ⊕ T)
+    unsigned char twoBlockMessage[32];
+    memcpy(twoBlockMessage, message, sizeof(message));
+    
+    // Compute X ⊕ T
+    unsigned char xoredBlock[16];
+    xorBlocks(message, macSingleBlock, xoredBlock, sizeof(xoredBlock));
+
+    // Append X ⊕ T to the message
+    memcpy(twoBlockMessage + sizeof(message), xoredBlock, sizeof(xoredBlock));
+
+    // Print the results
+    printf("Original Message: %s\n", message);
+    printf("CBC-MAC for Single-Block Message: ");
+    for (size_t i = 0; i < sizeof(macSingleBlock); ++i) {
+        printf("%02x", macSingleBlock[i]);
+    }
+    printf("\n");
+
+    printf("\nTwo-Block Message: %s\n", twoBlockMessage);
+
+    return 0;
+}
