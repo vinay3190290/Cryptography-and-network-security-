@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <string.h>
+#include <openssl/dsa.h>
+#include <openssl/err.h>
+
+void handleErrors(void) {
+    ERR_print_errors_fp(stderr);
+    abort();
+}
+
+void generateDSAKey(DSA **dsa) {
+    *dsa = DSA_generate_parameters(2048, NULL, 0, NULL, NULL, NULL, NULL);
+    if (*dsa == NULL) {
+        handleErrors();
+    }
+
+    if (DSA_generate_key(*dsa) != 1) {
+        handleErrors();
+    }
+}
+
+void signAndVerifyDSA(const char *message, DSA *dsa) {
+    unsigned char signature[DSA_size(dsa)];
+    unsigned int sigLen;
+
+    // Sign the message
+    if (DSA_sign(0, (const unsigned char *)message, strlen(message), signature, &sigLen, dsa) != 1) {
+        handleErrors();
+    }
+
+    printf("DSA Signature:\n");
+    for (unsigned int i = 0; i < sigLen; ++i) {
+        printf("%02x", signature[i]);
+    }
+    printf("\n");
+
+    // Verify the signature
+    if (DSA_verify(0, (const unsigned char *)message, strlen(message), signature, sigLen, dsa) != 1) {
+        printf("DSA Signature verification failed.\n");
+    } else {
+        printf("DSA Signature verification successful.\n");
+    }
+}
+
+int main() {
+    const char *message = "Hello, DSA!";
+
+    DSA *dsaKey;
+    generateDSAKey(&dsaKey);
+
+    printf("Signing and verifying the message:\n");
+    signAndVerifyDSA(message, dsaKey);
+
+    // Changing k to demonstrate different signatures for the same message
+    DSA *dsaKey2;
+    generateDSAKey(&dsaKey2);
+
+    printf("\nSigning and verifying the message with a different DSA key:\n");
+    signAndVerifyDSA(message, dsaKey2);
+
+    DSA_free(dsaKey);
+    DSA_free(dsaKey2);
+
+    return 0;
+}
