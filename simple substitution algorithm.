@@ -1,0 +1,47 @@
+#include <stdio.h>
+#include <string.h>
+
+void decryptSubstitution(char ciphertext[]) {
+    char substitution[128];  
+           "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+
+    substitution['3'] = 'e';
+    substitution['†'] = 't';
+    substitution['‡'] = 'h';
+    substitution['8'] = 'a';
+    substitution['4'] = 'o';
+    substitution['6'] = 'n';
+    substitution['0'] = 'i';
+    substitution['5'] = 's';
+    substitution['*'] = 'r';
+    substitution[';'] = 'd';
+    substitution[')'] = 'c';
+    substitution['('] = 'u';
+    substitution[':'] = 'm';
+    substitution['¶'] = 'f';
+    substitution[']'] = 'y';
+    substitution['['] = 'g';
+    substitution['—'] = 'l';
+    substitution['?'] = 'p';
+
+    // Decrypt the message
+    for (int i = 0; ciphertext[i] != '\0'; i++) {
+        char currentChar = ciphertext[i];
+        if (substitution[currentChar] != '\0') {
+            printf("%c", substitution[currentChar]);
+        } else {
+            printf("%c", currentChar);
+        }
+    }
+
+    printf("\n");
+}
+
+int main() {
+    char ciphertext[] =
+        "53‡‡†305))6*;4826)4‡.)4‡);806*;48†8¶60))85;;]8*;:‡*8†83(88)5*†;46(;88*96*?;8)*‡(;485);5*†2:*‡(;4956*2(5*—4)8¶8*;4069285);)6†8)4‡‡;1(‡9;48081;8:8‡1;48†85;4)485†528806*81(‡9;48;(88;4(‡?34;48)4‡;161;:188;‡?;";
+
+    decryptSubstitution(ciphertext);
+
+    return 0;
+}
