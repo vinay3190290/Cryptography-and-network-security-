@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define ALPHABET_SIZE 26
+
+// Function to calculate letter frequencies in a given text
+void calculateLetterFrequencies(const char *text, double frequencies[ALPHABET_SIZE]) {
+    int totalLetters = 0;
+
+    for (int i = 0; text[i] != '\0'; ++i) {
+        if (isalpha(text[i])) {
+            totalLetters++;
+            char currentChar = tolower(text[i]);
+            frequencies[currentChar - 'a']++;
+        }
+    }
+
+    // Convert counts to frequencies
+    for (int i = 0; i < ALPHABET_SIZE; ++i) {
+        frequencies[i] /= totalLetters;
+    }
+}
+
+// Function to perform additive decryption with a given key
+void additiveDecrypt(const char *ciphertext, int key, char *plaintext) {
+    for (int i = 0; ciphertext[i] != '\0'; ++i) {
+        if (isalpha(ciphertext[i])) {
+            char base = isupper(ciphertext[i]) ? 'A' : 'a';
+            plaintext[i] = (ciphertext[i] - key - base + ALPHABET_SIZE) % ALPHABET_SIZE + base;
+        } else {
+            // Non-alphabetic characters remain unchanged
+            plaintext[i] = ciphertext[i];
+        }
+    }
+}
+
+// Function to perform letter frequency attack and print possible plaintexts
+void letterFrequencyAttack(const char *ciphertext, int numResults) {
+    double expectedFrequencies[ALPHABET_SIZE] = {
+        0.0817, 0.0149, 0.0278, 0.0425, 0.127, 0.0223, 0.0202, 0.0609,
+        0.0697, 0.0015, 0.0077, 0.0402, 0.0241, 0.0675, 0.0751, 0.0193,
+        0.0009, 0.0599, 0.0633, 0.0906, 0.0276, 0.0098, 0.0236, 0.0015,
+        0.0197, 0.0007
+    };
+
+    int keyGuess;
+    char decryptedText[1000]; // Adjust the size accordingly
+
+    for (keyGuess = 0; keyGuess < ALPHABET_SIZE; ++keyGuess) {
+        additiveDecrypt(ciphertext, keyGuess, decryptedText);
+
+        double frequencies[ALPHABET_SIZE] = {0};
+        calculateLetterFrequencies(decryptedText, frequencies);
+
+        double score = 0;
+        for (int i = 0; i < ALPHABET_SIZE; ++i) {
+            score += (frequencies[i] - expectedFrequencies[i]) *
+                     (frequencies[i] - expectedFrequencies[i]);
+        }
+
+        // Print results in order of likelihood
+        printf("Key Guess: %d, Score: %.4f, Plaintext: %s\n", keyGuess, score, decryptedText);
+    }
+}
+
+int main() {
+    const char *ciphertext = "Uifsf jt b tfdsfu ujnf!";
+    int numResults = 10; // Number of top results to display
+
+    printf("Ciphertext: %s\n", ciphertext);
+    printf("Performing letter frequency attack...\n");
+    letterFrequencyAttack(ciphertext, numResults);
+
+    return 0;
+}
