@@ -1,0 +1,35 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+// Function to perform one-time pad Vigenère encryption
+void vigenereEncrypt(const char *plaintext, const int *key, char *ciphertext) {
+    for (int i = 0; plaintext[i] != '\0'; ++i) {
+        if (isalpha(plaintext[i])) {
+            char base = isupper(plaintext[i]) ? 'A' : 'a';
+            ciphertext[i] = (plaintext[i] - base + key[i % 3]) % 26 + base;
+        } else {
+            // Non-alphabetic characters remain unchanged
+            ciphertext[i] = plaintext[i];
+        }
+    }
+}
+
+int main() {
+    const char *plaintext = "HelloWorld";
+    const int key[] = {3, 19, 5};  // Replace with your stream of random numbers
+
+    int plaintextLength = 0;
+    while (plaintext[plaintextLength] != '\0') {
+        plaintextLength++;
+    }
+
+    char ciphertext[plaintextLength + 1];
+
+    vigenereEncrypt(plaintext, key, ciphertext);
+
+    printf("Original: %s\n", plaintext);
+    printf("Encrypted: %s\n", ciphertext);
+
+    return 0;
+}
