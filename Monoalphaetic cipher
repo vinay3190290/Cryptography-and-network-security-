@@ -1,0 +1,59 @@
+#include <stdio.h>
+#include <string.h>
+
+void generateCipherSequence(char keyword[], char cipherSequence[]) {
+    int keywordLength = strlen(keyword);
+    int index = 0;
+
+    strcpy(cipherSequence, keyword);
+
+    for (int i = 0; i < keywordLength; i++) {
+        if (cipherSequence[i] >= 'a' && cipherSequence[i] <= 'z') {
+            cipherSequence[i] -= ('a' - 'A'); // Convert to uppercase
+        }
+    }
+
+    for (char ch = 'A'; ch <= 'Z'; ch++) {
+        if (strchr(keyword, ch) == NULL) {
+            cipherSequence[keywordLength + index] = ch;
+            index++;
+        }
+    }
+
+    cipherSequence[keywordLength + index] = '\0'; // Null-terminate the string
+}
+
+void encryptMonoalphabetic(char plaintext[], char keyword[], char ciphertext[]) {
+    char cipherSequence[27]; // Assuming a maximum keyword length of 26
+
+    generateCipherSequence(keyword, cipherSequence);
+
+    for (int i = 0; plaintext[i] != '\0'; i++) {
+        char currentChar = plaintext[i];
+
+        if (currentChar >= 'a' && currentChar <= 'z') {
+            ciphertext[i] = cipherSequence[currentChar - 'a'];
+        } else if (currentChar >= 'A' && currentChar <= 'Z') {
+            // Map uppercase letters
+            ciphertext[i] = cipherSequence[currentChar - 'A'];
+        } else {
+            // Leave non-alphabetic characters unchanged
+            ciphertext[i] = currentChar;
+        }
+    }
+
+    ciphertext[strlen(plaintext)] = '\0'; // Null-terminate the string
+}
+
+int main() {
+    char plaintext[] = "HelloWorld";
+    char keyword[] = "CIPHER";
+    char ciphertext[100]; // Adjust the size based on your needs
+
+    encryptMonoalphabetic(plaintext, keyword, ciphertext);
+
+    printf("Plaintext: %s\n", plaintext);
+    printf("Ciphertext: %s\n", ciphertext);
+
+    return 0;
+}
